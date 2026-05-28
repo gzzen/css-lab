@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aero Frame — Example</title>
+  <link rel="stylesheet" href="frame.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 3rem 1.5rem;
+      background: url("../assets/sky.png") center / cover no-repeat fixed;
+      font-family: system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="frame">
+    <div class="content">
+      <h1 style="margin: 0 0 0.5rem; color: #30333b; font-size: 1.6rem; font-weight: 600;">
+        Aero Frame
+      </h1>
+      <p style="margin: 0 0 1.5rem; color: #4a5568; line-height: 1.65;">
+        Move your cursor over the bezel to see the light follow it.
+        Click anywhere on the frame rim to trigger a ripple.
+      </p>
+      <p style="margin: 0; color: #637084; font-size: 0.9rem;">
+        The glass border uses <code>backdrop-filter</code>, inset box-shadows,
+        and CSS custom properties driven by a small JS helper.
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initFrames } from "./frame.js";
+    initFrames();
+  </script>
+</body>
+</html>
