@@ -1,0 +1,196 @@
+/**
+ * disc.css
+ * Two components: .disc (glass filter button) and .tint-overlay (viewport tint).
+ *
+ * They are designed to work together: clicking a .disc applies a multiply-blend
+ * color wash to a background image via .tint-overlay, producing the effect of
+ * swapping an optical filter in front of the scene.
+ *
+ * ─── .disc ──────────────────────────────────────────────────────────────────
+ *
+ * A circular glass button with idle/active background states and a lift-on-hover
+ * transform. Color is set per-instance via --c-idle and --c-active, which can be
+ * applied inline, via a data attribute selector, or via a modifier class.
+ *
+ * Usage:
+ *   <button class="disc">
+ *     <span class="disc-glass">
+ *       <span class="disc-label">label</span>
+ *     </span>
+ *   </button>
+ *
+ * Coloring a specific disc (data attribute pattern):
+ *   [data-color="amber"] .disc-glass {
+ *     --c-idle:   rgb(255 190 100 / 0.32);
+ *     --c-active: rgb(245 165  70 / 0.50);
+ *   }
+ *
+ * Active state: add .active to .disc via JS on click.
+ * JS required for tint sync — see disc.js.
+ *
+ * ─── .tint-overlay ──────────────────────────────────────────────────────────
+ *
+ * A fixed full-viewport layer composited with mix-blend-mode: multiply.
+ * Place it as a direct child of <body>, before all content layers.
+ * Content must sit above it (z-index: 2 or higher on a positioned ancestor).
+ *
+ * Drive the tint color from JS by setting four custom properties on :root:
+ *   --tint-r, --tint-g, --tint-b  (0–255)
+ *   --tint-a                       (0–1, 0 = transparent / no tint)
+ *
+ * Usage:
+ *   <body>
+ *     <div class="tint-overlay"></div>
+ *     <main> ... </main>
+ *   </body>
+ *
+ * JS required for tint changes — see disc.js.
+ */
+
+/* ─── Tint-overlay tokens ───────────────────────────────────────────────────── */
+
+:root {
+  --tint-r: 0;
+  --tint-g: 0;
+  --tint-b: 0;
+  --tint-a: 0;
+}
+
+/* ─── Tint overlay ──────────────────────────────────────────────────────────── */
+
+.tint-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  background: rgba(var(--tint-r), var(--tint-g), var(--tint-b), var(--tint-a));
+
+  /**
+   * multiply blends the tint color into the background image below,
+   * simulating a physical color gel or optical filter.
+   * Works only when the element below is visible (not covered by an opaque layer).
+   */
+  mix-blend-mode: multiply;
+
+  transition: background 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Disc tokens ───────────────────────────────────────────────────────────── */
+
+.disc {
+  /* Lift distance on hover. */
+  --disc-lift: 5px;
+
+  /* Shadow tint — darken for warm scenes, cool for sky backgrounds. */
+  --disc-shadow: rgb(20 35 60 / 0.32);
+
+  /* Size of the glass circle. */
+  --disc-size: 100px;
+}
+
+/* ─── Disc base ─────────────────────────────────────────────────────────────── */
+
+.disc {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.disc:hover {
+  transform: translateY(calc(-1 * var(--disc-lift)));
+}
+
+/* ─── Glass face ────────────────────────────────────────────────────────────── */
+
+.disc-glass {
+  width: var(--disc-size);
+  height: var(--disc-size);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  /**
+   * --c-idle and --c-active must be set on .disc-glass (or a parent) per instance.
+   * Fallback is fully transparent so the disc still renders without them.
+   */
+  --c-idle: transparent;
+  --c-active: transparent;
+
+  background: var(--c-idle);
+  border: 1px solid rgb(255 255 255 / 0.4);
+  backdrop-filter: blur(10px) saturate(1.5);
+
+  box-shadow:
+    0 18px 35px -10px var(--disc-shadow),
+    inset 0 2px 4px rgb(255 255 255 / 0.8),
+    inset 0 -4px 12px rgb(255 255 255 / 0.18);
+
+  transition:
+    background 0.6s ease,
+    box-shadow 0.4s ease;
+}
+
+/* ─── Hover and active states ───────────────────────────────────────────────── */
+
+.disc:hover .disc-glass,
+.disc.active .disc-glass {
+  background: var(--c-active);
+}
+
+.disc:hover .disc-glass {
+  box-shadow:
+    0 25px 45px -10px var(--disc-shadow),
+    inset 0 2px 4px rgb(255 255 255 / 0.95),
+    inset 0 -4px 12px rgb(255 255 255 / 0.25);
+}
+
+/**
+ * Active state uses a white glow ring instead of a drop shadow,
+ * signaling selection without implying additional lift.
+ */
+.disc.active .disc-glass {
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.55),
+    inset 0 2px 4px rgb(255 255 255 / 0.95),
+    inset 0 -4px 12px rgb(255 255 255 / 0.25);
+}
+
+/* ─── Label ─────────────────────────────────────────────────────────────────── */
+
+.disc-label {
+  pointer-events: none;
+	font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  text-align: center;
+  padding-inline: 0.5rem;
+
+  /**
+   * Dark ink at reduced opacity reads against the translucent glass face
+   * regardless of the tint color behind it. The white text-shadow lifts
+   * it slightly off the glass surface.
+   */
+  color: rgb(28 30 38 / 0.65);
+  text-shadow: 0 1px 1px rgb(255 255 255 / 0.4);
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (width <= 800px) {
+  .disc {
+    --disc-size: 80px;
+  }
+
+  .disc-label {
+    font-size: 0.82rem;
+  }
+}

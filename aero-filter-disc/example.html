@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aero Filter Disc — Example</title>
+  <link rel="stylesheet" href="disc.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 70vh;
+      background: url("../assets/sky.jpg") center / cover no-repeat fixed;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 4rem;
+    }
+
+    .disc-row {
+      display: flex;
+      gap: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Per-disc colors */
+    [data-tint="clear"]   .disc-glass { --c-idle: rgb(255 255 255 / 0.25); --c-active: rgb(255 255 255 / 0.45); }
+    [data-tint="warm"]    .disc-glass { --c-idle: rgb(255 185  80 / 0.30); --c-active: rgb(240 155  50 / 0.52); }
+    [data-tint="dusk"]    .disc-glass { --c-idle: rgb(225 100 135 / 0.28); --c-active: rgb(210  80 115 / 0.50); }
+    [data-tint="cool"]    .disc-glass { --c-idle: rgb( 85 175 245 / 0.30); --c-active: rgb( 60 150 230 / 0.52); }
+    [data-tint="forest"]  .disc-glass { --c-idle: rgb( 80 190 110 / 0.28); --c-active: rgb( 55 165  85 / 0.50); }
+  </style>
+</head>
+<body>
+
+  <div class="tint-overlay"></div>
+
+  <div class="disc-row">
+    <button class="disc active" data-tint="clear">
+      <span class="disc-glass"><span class="disc-label">clear</span></span>
+    </button>
+    <button class="disc" data-tint="warm">
+      <span class="disc-glass"><span class="disc-label">warm</span></span>
+    </button>
+    <button class="disc" data-tint="dusk">
+      <span class="disc-glass"><span class="disc-label">dusk</span></span>
+    </button>
+    <button class="disc" data-tint="cool">
+      <span class="disc-glass"><span class="disc-label">cool</span></span>
+    </button>
+    <button class="disc" data-tint="forest">
+      <span class="disc-glass"><span class="disc-label">forest</span></span>
+    </button>
+  </div>
+
+  <script type="module">
+    import { initDiscs } from "./disc.js";
+
+    initDiscs({
+      clear:  { tint: { r: 255, g: 255, b: 255, a: 0    } },
+      warm:   { tint: { r: 220, g: 140, b:  50, a: 0.22 } },
+      dusk:   { tint: { r: 225, g: 100, b: 130, a: 0.20 } },
+      cool:   { tint: { r:  70, g: 150, b: 240, a: 0.25 } },
+      forest: { tint: { r:  80, g: 170, b: 100, a: 0.20 } },
+    });
+  </script>
+</body>
+</html>
