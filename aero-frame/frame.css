@@ -35,7 +35,7 @@
 
 .frame {
   /* Tint of the glass panel — set to any color or rgba value. */
-  --frame-bg: rgb(143 182 224);
+  --frame-bg: rgba(143, 182, 224, 0.5);
 
   /* Deeper tint used for a gradient variant (see commented rule below). */
   --frame-deep: rgb(110 155 200 / 0.32);
@@ -213,8 +213,8 @@
 /* ─── Component tokens ──────────────────────────────────────────────────────── */
 
 .content {
-  --content-bg: #dedede;
-  --content-edge: #c8bfa9;
+  --content-bg: #ffffff10;
+  --content-edge: #bdbdbd3e;
   --content-shadow: rgb(20 30 50);
   --content-radius: 8px;
   --content-padding: 3.2rem 3.5rem 2.8rem;
