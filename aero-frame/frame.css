@@ -1,0 +1,183 @@
+/**
+ * frame.css
+ * Raised glass frame component with cursor-following bezel light and click ripple.
+ *
+ * Required: register --ripple-r as a typed custom property before use,
+ * either in this file or in a consuming stylesheet:
+ *
+ *   @property --ripple-r {
+ *     syntax: "<length>";
+ *     inherits: false;
+ *     initial-value: 0px;
+ *   }
+ *
+ * Usage:
+ *   <div class="frame"> ... </div>
+ *
+ * Interaction (JS required — see frame.js):
+ *   mousemove  → sets --mx, --my  (bezel light follows cursor)
+ *   click      → sets --click-x, --click-y, adds .rippling class
+ *
+ * Theming:
+ *   Override any token on .frame or a parent to recolor without forking rules.
+ *   Minimum required: --frame-bg, --frame-deep, --frame-edge.
+ */
+
+/* ─── Typed property registration ──────────────────────────────────────────── */
+
+@property --ripple-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* ─── Component tokens ──────────────────────────────────────────────────────── */
+
+.frame {
+  /* Tint of the glass panel — set to any color or rgba value. */
+  --frame-bg: rgb(143 182 224);
+
+  /* Deeper tint used for a gradient variant (see commented rule below). */
+  --frame-deep: rgb(110 155 200 / 0.32);
+
+  /* Rim highlight color; should be light and semi-transparent. */
+  --frame-edge: rgb(255 255 255 / 0.72);
+
+  /* Padding is exposed as a token so pseudo-elements can mirror it. */
+  --frame-padding: 22px;
+
+  /* Bezel-light gradient radius in px. */
+  --frame-light-radius: 240px;
+
+  /* Drop shadow colors — adjust for warm or cool backgrounds. */
+  --frame-shadow-dark: rgb(15 30 55);
+}
+
+/* ─── Base layout ───────────────────────────────────────────────────────────── */
+
+.frame {
+  position: relative;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: var(--frame-padding);
+  border-radius: 20px;
+  border: 1px solid var(--frame-edge);
+
+  /**
+   * Solid tint variant (default).
+   * For a gradient top-to-deep effect, replace with:
+   *
+   *   background: linear-gradient(
+   *     180deg,
+   *     color-mix(in srgb, var(--frame-bg) 82%, white),
+   *     var(--frame-bg) 40%,
+   *     var(--frame-deep)
+   *   );
+   */
+  background: var(--frame-bg);
+
+  backdrop-filter: blur(14px) saturate(1.5);
+
+  box-shadow:
+    /* Outer drop shadows — conveys elevation. */
+    0 40px 90px -25px color-mix(in srgb, var(--frame-shadow-dark) 40%, transparent),
+    0 12px 25px -10px color-mix(in srgb, var(--frame-shadow-dark) 18%, transparent),
+    /* Top inner highlight — light catches the raised upper edge. */
+    inset 0 2px 0 rgb(255 255 255 / 0.78),
+    /* Bottom inner shadow — underside sits in shade. */
+    inset 0 -2px 0 color-mix(in srgb, var(--frame-shadow-dark) 10%, transparent),
+    /* Side inner glow — soft ambient fill. */
+    inset 2px 0 6px rgb(255 255 255 / 0.25),
+    inset -2px 0 6px rgb(255 255 255 / 0.18);
+}
+
+/* ─── Bezel light (::after) ────────────────────────────────────────────────── */
+
+/**
+ * A radial highlight that follows the cursor across the bezel padding only.
+ * The mask punches out the content area so the light stays on the frame rim.
+ *
+ * JS sets --mx and --my as percentage values via mousemove.
+ */
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: var(--frame-padding);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+
+  background: radial-gradient(
+    var(--frame-light-radius) circle at var(--mx, 50%) var(--my, 50%),
+    rgb(255 255 255 / 0.9) 0%,
+    rgb(255 255 255 / 0.45) 25%,
+    rgb(255 255 255 / 0.12) 50%,
+    rgb(255 255 255 / 0) 70%
+  );
+
+  /* Clip light to the bezel padding; exclude the content area. */
+  mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+  mask-clip: padding-box, content-box;
+  mask-composite: exclude;
+}
+
+.frame:hover::after {
+  opacity: 0.5;
+}
+
+/* ─── Click ripple (::before) ──────────────────────────────────────────────── */
+
+/**
+ * An expanding radial ripple anchored to the click position.
+ * Confined to the bezel via the same mask technique as ::after.
+ *
+ * JS sets --click-x and --click-y, then toggles the .rippling class.
+ * Remove and re-add .rippling (with a forced reflow in between) to restart
+ * the animation on repeated clicks.
+ */
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: var(--frame-padding);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+
+  background: radial-gradient(
+    circle at var(--click-x, 50%) var(--click-y, 50%),
+    rgb(255 255 255 / 0.85) 0,
+    rgb(255 255 255 / 0.5) calc(var(--ripple-r) * 0.25),
+    rgb(255 255 255 / 0.18) calc(var(--ripple-r) * 0.55),
+    rgb(255 255 255 / 0) var(--ripple-r)
+  );
+
+  mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+  mask-clip: padding-box, content-box;
+  mask-composite: exclude;
+}
+
+.frame.rippling::before {
+  animation: frame-ripple-diffuse 1.1s ease-out;
+}
+
+@keyframes frame-ripple-diffuse {
+  0%   { opacity: 1;   --ripple-r: 0; }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0;   --ripple-r: 1500px; }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (width <= 800px) {
+  .frame {
+    --frame-padding: 14px;
+
+    border-radius: 16px;
+  }
+}
